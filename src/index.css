@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────
+   Base resets & root tokens
+───────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-obsidian text-pearl font-sans;
+    overflow-x: hidden;
+  }
+
+  /* Remove default list decoration inside nav */
+  nav ul, nav ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Selection color */
+  ::selection {
+    background-color: theme('colors.champagne');
+    color: theme('colors.obsidian');
+  }
+}
+
+/* ─────────────────────────────────────────
+   Utility layer — reusable design tokens
+───────────────────────────────────────── */
+@layer utilities {
+  /* Thin gold rule */
+  .gold-rule {
+    @apply block w-12 h-px bg-champagne mx-auto;
+  }
+
+  /* Display heading helper */
+  .heading-display {
+    @apply font-display font-light tracking-wide leading-none;
+  }
+
+  /* Subtle blur-glass card */
+  .glass-card {
+    background: rgba(28, 28, 30, 0.72);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid rgba(201, 169, 110, 0.15);
+  }
+
+  /* Gold shimmer text */
+  .text-gold-shimmer {
+    background: linear-gradient(
+      105deg,
+      #C9A96E 0%,
+      #F0D89A 42%,
+      #C9A96E 58%,
+      #A67C52 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Scroll-fade in animation */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─────────────────────────────────────────
+   Custom scrollbar — obsidian / gold
+───────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0A0A0A; }
+::-webkit-scrollbar-thumb {
+  background: #C9A96E;
+  border-radius: 2px;
+}
