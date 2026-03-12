@@ -1,10 +1,13 @@
 import { Routes, Route } from 'react-router-dom'
-import Navbar from './components/Navbar'
-import Home        from './pages/Home'
-import Shop        from './pages/Shop'
-import Philosophy  from './pages/Philosophy'
-import Experience  from './pages/Experience'
-import Contact     from './pages/Contact'
+import Navbar         from './components/Navbar'
+import Home           from './pages/Home'
+import Shop           from './pages/Shop'
+import Philosophy     from './pages/Philosophy'
+import Experience     from './pages/Experience'
+import Contact        from './pages/Contact'
+import Admin          from './pages/Admin'
+import AdminLogin     from './pages/AdminLogin'
+import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
   return (
@@ -18,6 +21,8 @@ export default function App() {
         <Route path="/philosophy"  element={<Philosophy />}  />
         <Route path="/experience"  element={<Experience />}  />
         <Route path="/contact"     element={<Contact />}     />
+        <Route path="/admin/login" element={<AdminLogin />}  />
+        <Route path="/admin"       element={<ProtectedRoute><Admin /></ProtectedRoute>} />
 
         {/* 404 fallback */}
         <Route path="*" element={

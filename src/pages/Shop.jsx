@@ -2,58 +2,7 @@ import { useState, useReducer, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import PreviewStage from '../components/PreviewStage'
 import LensControls, { TINTS } from '../components/LensControls'
-
-/* ═══════════════════════════════════════════════════════════════
-   FRAME CATALOGUE
-═══════════════════════════════════════════════════════════════ */
-const FRAMES = [
-  {
-    id:       'dita-monolix',
-    maison:   'DITA Eyewear',
-    name:     'DITA',
-    model:    'MONOLIX',
-    ref:      'DTX750-A-01',
-    image:    '/images/dita-monolix.webp',
-    featured: true,
-    specs: [
-      { label: 'Material',    value: 'Grade 5 Titanium'  },
-      { label: 'Origin',      value: 'Sabae, Japan'       },
-      { label: 'Lens Width',  value: '54 mm'              },
-      { label: 'Bridge',      value: '18 mm'              },
-      { label: 'Temple',      value: '145 mm'             },
-    ],
-  },
-  {
-    id:     'masunaga-tona',
-    maison: 'Masunaga since 1905',
-    name:   'Masunaga',
-    model:  'TONA',
-    ref:    'GMS-825S',
-    image:  '/images/masunaga-tona.webp',
-    specs: [
-      { label: 'Material',    value: 'Hand-finished Acetate' },
-      { label: 'Origin',      value: 'Sabae, Japan'          },
-      { label: 'Lens Width',  value: '52 mm'                 },
-      { label: 'Bridge',      value: '20 mm'                 },
-      { label: 'Temple',      value: '140 mm'                },
-    ],
-  },
-  {
-    id:     'cazal-6018',
-    maison: 'Cazal Eyewear',
-    name:   'Cazal',
-    model:  'MOD 6018',
-    ref:    'CAZ 6018/3',
-    image:  '/images/cazal-6018.png',
-    specs: [
-      { label: 'Material',    value: 'Premium Metal Alloy' },
-      { label: 'Origin',      value: 'Germany'             },
-      { label: 'Lens Width',  value: '56 mm'               },
-      { label: 'Bridge',      value: '16 mm'               },
-      { label: 'Temple',      value: '140 mm'              },
-    ],
-  },
-]
+import { supabase } from '../lib/supabaseClient'
 
 /* ═══════════════════════════════════════════════════════════════
    LENS CONFIG STATE
@@ -270,8 +219,60 @@ function FrameCard({ frame, onClick, featured = false }) {
    FRAME SELECTION VIEW
 ═══════════════════════════════════════════════════════════════ */
 function FrameSelector({ onSelect }) {
-  const featured = FRAMES.find(f => f.featured)
-  const secondary = FRAMES.filter(f => !f.featured)
+  const [frames, setFrames]   = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState(null)
+
+  useEffect(() => {
+    supabase
+      .from('frames')
+      .select('*')
+      .eq('published', true)
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          setError(error.message)
+        } else {
+          // Map Supabase column names to the shape components expect:
+          //   src  → image   (product photo URL)
+          //   sub  → model   (variant / colorway shown as the model name)
+          setFrames(
+            data.map(row => ({
+              ...row,
+              image: row.src,
+              model: row.sub ?? '',
+            }))
+          )
+        }
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) {
+    return (
+      <main className="bg-obsidian min-h-screen pt-20 flex items-center justify-center">
+        <p className="font-mono text-[0.6rem] tracking-widest3 uppercase text-smoke animate-pulse">
+          Loading frames…
+        </p>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="bg-obsidian min-h-screen pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <p className="font-mono text-[0.6rem] tracking-widest2 uppercase text-champagne/60 mb-2">
+            Unable to load frames
+          </p>
+          <p className="font-sans text-[0.8rem] text-smoke/70">{error}</p>
+        </div>
+      </main>
+    )
+  }
+
+  const featured  = frames.find(f => f.featured)
+  const secondary = frames.filter(f => !f.featured)
 
   return (
     <main className="bg-obsidian min-h-screen pt-20">
@@ -298,11 +299,20 @@ function FrameSelector({ onSelect }) {
         )}
 
         {/* Secondary — side by side */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {secondary.map(frame => (
-            <FrameCard key={frame.id} frame={frame} onClick={onSelect} />
-          ))}
-        </div>
+        {secondary.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {secondary.map(frame => (
+              <FrameCard key={frame.id} frame={frame} onClick={onSelect} />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {frames.length === 0 && (
+          <p className="font-mono text-[0.6rem] tracking-widest2 uppercase text-smoke/50 text-center py-20">
+            No frames available at this time.
+          </p>
+        )}
       </section>
     </main>
   )
