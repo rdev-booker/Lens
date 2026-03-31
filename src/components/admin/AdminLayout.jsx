@@ -2,9 +2,10 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 
 const NAV = [
-  { to: '/admin/products', label: 'Products' },
-  { to: '/admin/tints',    label: 'Tints'    },
-  { to: '/admin/orders',   label: 'Orders'   },
+  { to: '/admin/products',   label: 'Products'   },
+  { to: '/admin/moderation', label: 'Moderation' },
+  { to: '/admin/tints',      label: 'Tints'      },
+  { to: '/admin/orders',     label: 'Orders'     },
 ]
 
 /**

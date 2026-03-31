@@ -7,6 +7,7 @@ import Experience      from './pages/Experience'
 import Contact         from './pages/Contact'
 import AdminLogin      from './pages/AdminLogin'
 import AdminProducts   from './pages/AdminProducts'
+import AdminModeration from './pages/AdminModeration'
 import AdminTints      from './pages/AdminTints'
 import AdminOrders     from './pages/AdminOrders'
 import ProtectedRoute  from './components/ProtectedRoute'
@@ -30,9 +31,10 @@ export default function App() {
 
         {/* ── Admin — protected, requires app_metadata.role === 'admin' ── */}
         <Route path="/admin" element={<Navigate to="/admin/products" replace />} />
-        <Route path="/admin/products" element={<ProtectedRoute><AdminProducts /></ProtectedRoute>} />
-        <Route path="/admin/tints"    element={<ProtectedRoute><AdminTints /></ProtectedRoute>}    />
-        <Route path="/admin/orders"   element={<ProtectedRoute><AdminOrders /></ProtectedRoute>}   />
+        <Route path="/admin/products"   element={<ProtectedRoute><AdminProducts /></ProtectedRoute>}   />
+        <Route path="/admin/moderation" element={<ProtectedRoute><AdminModeration /></ProtectedRoute>} />
+        <Route path="/admin/tints"      element={<ProtectedRoute><AdminTints /></ProtectedRoute>}      />
+        <Route path="/admin/orders"     element={<ProtectedRoute><AdminOrders /></ProtectedRoute>}     />
 
         {/* ── 404 ── */}
         <Route path="*" element={

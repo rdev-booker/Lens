@@ -39,3 +39,26 @@ export async function uploadFrameImage(file) {
 
   return data.publicUrl
 }
+
+/**
+ * Upload a customer look photo to the `customer_photos` bucket.
+ *
+ * @param {File} file - The image File object to upload.
+ * @returns {Promise<string>} The public URL of the uploaded image.
+ */
+export async function uploadCustomerPhoto(file) {
+  const ext      = file.name.split('.').pop()
+  const filename = `${crypto.randomUUID()}.${ext}`
+
+  const { error } = await supabase.storage
+    .from('customer_photos')
+    .upload(filename, file, { upsert: false })
+
+  if (error) throw new Error(`Upload failed: ${error.message}`)
+
+  const { data } = supabase.storage
+    .from('customer_photos')
+    .getPublicUrl(filename)
+
+  return data.publicUrl
+}

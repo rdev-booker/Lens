@@ -2,6 +2,8 @@ import { useState, useReducer, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import PreviewStage from '../components/PreviewStage'
 import LensControls, { TINTS } from '../components/LensControls'
+import CustomerLooksStrip from '../components/CustomerLooksStrip'
+import CustomerLooksUpload from '../components/CustomerLooksUpload'
 import { supabase } from '../lib/supabaseClient'
 
 /* ═══════════════════════════════════════════════════════════════
@@ -291,8 +293,9 @@ function FrameSelector({ onSelect }) {
 
         {/* Featured — full width */}
         {featured && (
-          <div className="mb-6">
+          <div className="mb-6 flex flex-col gap-0">
             <FrameCard frame={featured} onClick={onSelect} featured />
+            <CustomerLooksStrip frameId={featured.id} />
           </div>
         )}
 
@@ -300,7 +303,10 @@ function FrameSelector({ onSelect }) {
         {secondary.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {secondary.map(frame => (
-              <FrameCard key={frame.id} frame={frame} onClick={onSelect} />
+              <div key={frame.id} className="flex flex-col gap-0">
+                <FrameCard frame={frame} onClick={onSelect} />
+                <CustomerLooksStrip frameId={frame.id} />
+              </div>
             ))}
           </div>
         )}
@@ -411,7 +417,8 @@ function ConfigSummary({ frame, config }) {
    LENS CUSTOMISER VIEW
 ═══════════════════════════════════════════════════════════════ */
 function LensCustomiser({ frame, onBack }) {
-  const [config, dispatch] = useReducer(configReducer, DEFAULT_CONFIG)
+  const [config,     dispatch]    = useReducer(configReducer, DEFAULT_CONFIG)
+  const [showUpload, setShowUpload] = useState(false)
 
   const setLensType  = lensType  => dispatch({ lensType })
   const updateConfig = patch     => dispatch(patch)
@@ -541,9 +548,36 @@ function LensCustomiser({ frame, onBack }) {
               </p>
             </div>
 
+            {/* Submit a Look */}
+            <div className="border border-champagne/10 px-5 py-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="font-mono text-[0.46rem] tracking-widest2 uppercase text-champagne mb-1">
+                  Customer Looks
+                </p>
+                <p className="font-mono text-[0.42rem] tracking-wider uppercase text-smoke/45 leading-relaxed">
+                  Wearing this frame? Share your photo.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowUpload(true)}
+                className="shrink-0 px-4 py-2 border border-champagne/30 text-champagne
+                           font-mono text-[0.44rem] tracking-widest2 uppercase
+                           hover:bg-champagne/10 transition-colors duration-300"
+              >
+                Submit
+              </button>
+            </div>
+
+            {/* Customer looks strip */}
+            <CustomerLooksStrip frameId={frame.id} />
+
           </aside>
         </div>
       </section>
+
+      {showUpload && (
+        <CustomerLooksUpload frame={frame} onClose={() => setShowUpload(false)} />
+      )}
     </main>
   )
 }
