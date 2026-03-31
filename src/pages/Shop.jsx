@@ -226,21 +226,19 @@ function FrameSelector({ onSelect }) {
   useEffect(() => {
     supabase
       .from('frames')
-      .select('*')
-      .eq('published', true)
+      .select('id, name, sub, maison, src')
       .order('created_at', { ascending: true })
       .then(({ data, error }) => {
         if (error) {
           setError(error.message)
         } else {
-          // Map Supabase column names to the shape components expect:
-          //   src  → image   (product photo URL)
-          //   sub  → model   (variant / colorway shown as the model name)
           setFrames(
-            data.map(row => ({
+            (data ?? []).map((row, i) => ({
               ...row,
-              image: row.src,
-              model: row.sub ?? '',
+              image:    row.src ?? '',
+              model:    row.sub ?? '',
+              ref:      row.id.slice(0, 8).toUpperCase(),
+              featured: i === 0,
             }))
           )
         }
