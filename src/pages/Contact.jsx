@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
 const TIMES = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00']
 
@@ -6,13 +7,34 @@ export default function Contact() {
   const [form, setForm] = useState({
     name: '', email: '', phone: '', time: '', notes: '',
   })
-  const [submitted, setSubmitted] = useState(false)
+  const [submitted,  setSubmitted]  = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [errorMsg,   setErrorMsg]   = useState(null)
 
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault()
-    // In production: send to a backend / Calendly / etc.
+    setSubmitting(true)
+    setErrorMsg(null)
+
+    const { error } = await supabase
+      .from('contact_submissions')
+      .insert({
+        name:  form.name,
+        email: form.email,
+        phone: form.phone || null,
+        preferred_time: form.time || null,
+        notes: form.notes || null,
+      })
+
+    setSubmitting(false)
+
+    if (error) {
+      setErrorMsg(error.message)
+      return
+    }
+
     setSubmitted(true)
   }
 
@@ -101,10 +123,15 @@ export default function Contact() {
                   />
 
                   {/* Preferred time */}
-                  <div className="flex flex-col gap-2">
-                    <span className="font-mono text-[0.52rem] tracking-widest2 uppercase text-smoke">
-                      Preferred Time
-                    </span>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-baseline gap-3">
+                      <span className="font-mono text-[0.62rem] tracking-widest2 uppercase text-smoke">
+                        Preferred Time
+                      </span>
+                      <span className="font-mono text-[0.5rem] tracking-wider uppercase text-smoke/50">
+                        GMT / BST · London
+                      </span>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {TIMES.map(t => (
                         <button
@@ -112,7 +139,7 @@ export default function Contact() {
                           type="button"
                           onClick={() => setForm(f => ({ ...f, time: t }))}
                           className={[
-                            'px-4 py-2 font-mono text-[0.58rem] tracking-wider border',
+                            'px-5 py-3 font-mono text-[0.7rem] tracking-wider border',
                             'transition-colors duration-200',
                             form.time === t
                               ? 'border-champagne bg-champagne/10 text-champagne'
@@ -133,18 +160,28 @@ export default function Contact() {
                     className={`${fieldCls} resize-none`}
                   />
 
+                  {errorMsg && (
+                    <p className="font-mono text-[0.5rem] tracking-wider uppercase text-red-400/70 border border-red-400/20 px-4 py-3">
+                      {errorMsg}
+                    </p>
+                  )}
+
                   <button
                     type="submit"
+                    disabled={submitting}
                     className="relative inline-flex items-center justify-center
                                px-8 py-4 bg-champagne text-obsidian
                                font-sans text-[0.68rem] tracking-widest2 uppercase
-                               overflow-hidden group transition-colors duration-400"
+                               overflow-hidden group transition-colors duration-400
+                               disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span
                       className="absolute inset-0 bg-[#e8c98a] translate-x-[-101%]
                                  group-hover:translate-x-0 transition-transform duration-400 ease-luxury"
                     />
-                    <span className="relative">Request Appointment</span>
+                    <span className="relative">
+                      {submitting ? 'Sending…' : 'Request Appointment'}
+                    </span>
                   </button>
                 </form>
               )}

@@ -295,30 +295,30 @@ export default function Home() {
                 link: '/contact',
               },
             ].map(({ num, title, body, link }, i) => (
-              <FadeUp
-                key={num}
-                delay={i * 100}
-                className="bg-obsidian p-10 lg:p-14 flex flex-col gap-6
-                           group hover:bg-charcoal transition-colors duration-400"
-              >
-                <span className="font-mono text-[0.55rem] tracking-widest3 text-champagne/60">{num}</span>
-                <h3 className="font-display font-light text-[1.65rem] leading-tight text-pearl
-                               group-hover:text-champagne transition-colors duration-400">
-                  {title}
-                </h3>
-                <p className="font-sans font-light text-[0.9rem] leading-[1.75] text-smoke flex-1">
-                  {body}
-                </p>
-                <Link
-                  to={link}
-                  className="inline-flex items-center gap-2 font-mono text-[0.55rem]
-                             tracking-widest2 uppercase text-champagne/70
-                             group-hover:text-champagne transition-colors duration-300"
+              <Link key={num} to={link} className="group block">
+                <FadeUp
+                  delay={i * 100}
+                  className="bg-obsidian p-10 lg:p-14 flex flex-col gap-6
+                             hover:bg-charcoal transition-colors duration-400 h-full"
                 >
-                  Learn more
-                  <span className="block w-5 h-px bg-current" aria-hidden />
-                </Link>
-              </FadeUp>
+                  <span className="font-mono text-[0.55rem] tracking-widest3 text-champagne/60">{num}</span>
+                  <h3 className="font-display font-light text-[1.65rem] leading-tight text-pearl
+                                 group-hover:text-champagne transition-colors duration-400">
+                    {title}
+                  </h3>
+                  <p className="font-sans font-light text-[0.9rem] leading-[1.75] text-smoke flex-1">
+                    {body}
+                  </p>
+                  <span
+                    className="inline-flex items-center gap-2 font-mono text-[0.55rem]
+                               tracking-widest2 uppercase text-champagne/70
+                               group-hover:text-champagne transition-colors duration-300"
+                  >
+                    Learn more
+                    <span className="block w-5 h-px bg-current" aria-hidden />
+                  </span>
+                </FadeUp>
+              </Link>
             ))}
           </div>
         </div>

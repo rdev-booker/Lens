@@ -202,10 +202,14 @@ export default function PreviewStage({ frame, config, activeTypeName }) {
     ctx.drawImage(img, dx, dy, dw, dh)
 
     // Auto flood-fill both lenses using predefined seed points
-    const seeds = LENS_SEEDS[frame.id] ?? LENS_SEEDS['dita-monolix']
-    const leftMask  = floodFill(ctx, seeds.left[0],  seeds.left[1])
-    const rightMask = floodFill(ctx, seeds.right[0], seeds.right[1])
-    setMasks({ left: leftMask, right: rightMask })
+    try {
+      const seeds = LENS_SEEDS[frame.id] ?? LENS_SEEDS['dita-monolix']
+      const leftMask  = floodFill(ctx, seeds.left[0],  seeds.left[1])
+      const rightMask = floodFill(ctx, seeds.right[0], seeds.right[1])
+      setMasks({ left: leftMask, right: rightMask })
+    } catch {
+      // Canvas tainted or CORS failure — image still displays, tint unavailable
+    }
     setImageLoaded(true)
   }, [frame.id])
 
@@ -281,6 +285,7 @@ export default function PreviewStage({ frame, config, activeTypeName }) {
           alt={`${frame.name} ${frame.model}`}
           className="absolute inset-0 w-full h-full z-0"
           style={{ objectFit: 'cover' }}
+          crossOrigin="anonymous"
           draggable={false}
           onLoad={drawOffscreen}
           onError={e => { e.currentTarget.style.display = 'none' }}

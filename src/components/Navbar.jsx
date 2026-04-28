@@ -8,9 +8,22 @@ const NAV_LINKS = [
   { label: 'Contact',        to: '/contact'     },
 ]
 
+function useTheme() {
+  const [theme, setTheme] = useState(() =>
+    localStorage.getItem('lens-theme') ?? 'dark'
+  )
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('lens-theme', theme)
+  }, [theme])
+  const toggle = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
+  return { theme, toggle }
+}
+
 export default function Navbar() {
   const [scrolled,     setScrolled]     = useState(false)
   const [menuOpen,     setMenuOpen]     = useState(false)
+  const { theme, toggle } = useTheme()
   const location = useLocation()
 
   // Collapse mobile menu on route change
@@ -73,8 +86,34 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* ── Book Appointment CTA ── */}
-        <div className="hidden lg:flex items-center">
+        {/* ── Theme toggle + Book Appointment CTA ── */}
+        <div className="hidden lg:flex items-center gap-4">
+          <button
+            onClick={toggle}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="w-8 h-8 flex items-center justify-center text-smoke hover:text-champagne transition-colors duration-300"
+          >
+            {theme === 'dark' ? (
+              /* Sun icon */
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <circle cx="8" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.2"/>
+                <line x1="8" y1="1" x2="8" y2="2.8"   stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="8" y1="13.2" x2="8" y2="15" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="1" y1="8" x2="2.8" y2="8"   stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="13.2" y1="8" x2="15" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="2.9" y1="2.9" x2="4.2" y2="4.2"   stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="11.8" y1="11.8" x2="13.1" y2="13.1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="13.1" y1="2.9" x2="11.8" y2="4.2"  stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="4.2" y1="11.8" x2="2.9" y2="13.1"  stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              /* Moon icon */
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+                <path d="M13 9.5A6 6 0 0 1 5.5 2a6 6 0 1 0 7.5 7.5Z"
+                      stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
           <Link
             to="/contact"
             className="relative inline-flex items-center px-6 py-2.5

@@ -1,5 +1,5 @@
 import { useState, useReducer, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import PreviewStage from '../components/PreviewStage'
 import LensControls, { TINTS } from '../components/LensControls'
 import CustomerLooksStrip from '../components/CustomerLooksStrip'
@@ -53,17 +53,6 @@ function LensTypeTab({ type, active, onClick }) {
   )
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SPEC ROW
-═══════════════════════════════════════════════════════════════ */
-function SpecRow({ label, value }) {
-  return (
-    <div className="flex justify-between items-baseline py-2.5 border-b border-champagne/8">
-      <span className="font-mono text-[0.52rem] tracking-widest2 uppercase text-smoke">{label}</span>
-      <span className="font-sans text-[0.78rem] text-silver">{value}</span>
-    </div>
-  )
-}
 
 /* ═══════════════════════════════════════════════════════════════
    FRAME CARD — 5:3 aspect ratio, object-fit: contain
@@ -185,7 +174,7 @@ function FrameCard({ frame, onClick, featured = false }) {
         {/* Row 1 — maison tag + ref */}
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-[0.48rem] tracking-widest3 uppercase text-champagne">
-            {frame.maison}
+            Custom Frame
           </span>
           <span className="font-mono text-[0.44rem] tracking-widest2 uppercase text-smoke">
             Ref. {frame.ref}
@@ -196,8 +185,7 @@ function FrameCard({ frame, onClick, featured = false }) {
         <div className="flex items-baseline justify-between gap-4">
           <p className="font-display font-light text-[1.35rem] leading-none text-pearl
                         group-hover:text-champagne transition-colors duration-400">
-            {frame.name}{' '}
-            <em className="font-display italic">{frame.model}</em>
+            Custom Frame
           </p>
           {/* Arrow hint */}
           <svg
@@ -220,12 +208,14 @@ function FrameCard({ frame, onClick, featured = false }) {
 /* ═══════════════════════════════════════════════════════════════
    FRAME SELECTION VIEW
 ═══════════════════════════════════════════════════════════════ */
-function FrameSelector({ onSelect }) {
+function FrameSelector({ onSelect, initialSlug }) {
   const [frames, setFrames]   = useState([])
+  const [looks,  setLooks]    = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
 
   useEffect(() => {
+    // Fetch frames — column names match the actual DB table (sub, src)
     supabase
       .from('frames')
       .select('id, name, sub, maison, src')
@@ -234,17 +224,46 @@ function FrameSelector({ onSelect }) {
         if (error) {
           setError(error.message)
         } else {
-          setFrames(
-            (data ?? []).map((row, i) => ({
-              ...row,
-              image:    row.src ?? '',
-              model:    row.sub ?? '',
-              ref:      row.id.slice(0, 8).toUpperCase(),
-              featured: i === 0,
-            }))
-          )
+          const mapped = (data ?? []).map((row, i) => ({
+            ...row,
+            image:    row.src ?? '',
+            model:    row.sub ?? '',
+            ref:      row.id.slice(0, 8).toUpperCase(),
+            featured: i === 0,   // first row is featured
+          }))
+          setFrames(mapped)
+
+          // If a slug was passed via URL, auto-select that frame
+          if (initialSlug) {
+            const match = mapped.find(f => f.id === initialSlug)
+            if (match) onSelect(match)
+          }
         }
         setLoading(false)
+      })
+
+    // Fetch approved customer looks independently — failure won't affect frames
+    supabase
+      .from('customer_looks')
+      .select('id, image_url, frame_id, frames(id, name, sub, maison)')
+      .eq('is_approved', true)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error || !data) return
+        setLooks(
+          data
+            .filter(look => look.frames && look.frame_id)
+            .map(look => ({
+              id:      look.frame_id,
+              _lookId: look.id,
+              name:    look.frames.name,
+              model:   look.frames.sub ?? '',
+              maison:  look.frames.maison,
+              ref:     look.frame_id.slice(0, 8).toUpperCase(),
+              image:   look.image_url,
+              featured: false,
+            }))
+        )
       })
   }, [])
 
@@ -293,9 +312,8 @@ function FrameSelector({ onSelect }) {
 
         {/* Featured — full width */}
         {featured && (
-          <div className="mb-6 flex flex-col gap-0">
+          <div className="mb-6">
             <FrameCard frame={featured} onClick={onSelect} featured />
-            <CustomerLooksStrip frameId={featured.id} />
           </div>
         )}
 
@@ -303,10 +321,7 @@ function FrameSelector({ onSelect }) {
         {secondary.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {secondary.map(frame => (
-              <div key={frame.id} className="flex flex-col gap-0">
-                <FrameCard frame={frame} onClick={onSelect} />
-                <CustomerLooksStrip frameId={frame.id} />
-              </div>
+              <FrameCard key={frame.id} frame={frame} onClick={onSelect} />
             ))}
           </div>
         )}
@@ -316,6 +331,27 @@ function FrameSelector({ onSelect }) {
           <p className="font-mono text-[0.6rem] tracking-widest2 uppercase text-smoke/50 text-center py-20">
             No frames available at this time.
           </p>
+        )}
+
+        {/* ── Approved Customer Looks — each as a customisable frame ── */}
+        {looks.length > 0 && (
+          <>
+            <div className="mt-20 mb-10 text-center">
+              <p className="font-mono text-[0.5rem] tracking-widest3 uppercase text-champagne mb-3">
+                Community
+              </p>
+              <h2 className="font-display font-light text-[clamp(2rem,4vw,3.5rem)] leading-[0.95] text-pearl">
+                Custom Frame
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {looks.map(look => (
+                <div key={look._lookId} className="flex flex-col gap-0">
+                  <FrameCard frame={look} onClick={onSelect} />
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </section>
     </main>
@@ -584,17 +620,27 @@ function LensCustomiser({ frame, onBack }) {
 
 /* ═══════════════════════════════════════════════════════════════
    ROOT SHOP PAGE — switches between the two views
+   Supports /shop and /shop/:slug (SEO-friendly frame URLs)
 ═══════════════════════════════════════════════════════════════ */
 export default function Shop() {
+  const { slug }           = useParams()
+  const navigate           = useNavigate()
   const [selectedFrame, setSelectedFrame] = useState(null)
 
-  // Clicking a card → immediate transition to customiser
-  const handleSelect = frame => setSelectedFrame(frame)
-  const handleBack   = ()    => setSelectedFrame(null)
+  const handleSelect = frame => {
+    setSelectedFrame(frame)
+    navigate(`/shop/${frame.id}`, { replace: true })
+  }
+
+  const handleBack = () => {
+    setSelectedFrame(null)
+    navigate('/shop', { replace: true })
+  }
 
   if (selectedFrame) {
     return <LensCustomiser frame={selectedFrame} onBack={handleBack} />
   }
 
-  return <FrameSelector onSelect={handleSelect} />
+  // Pass slug so FrameSelector can auto-select when navigating directly to /shop/:slug
+  return <FrameSelector onSelect={handleSelect} initialSlug={slug} />
 }

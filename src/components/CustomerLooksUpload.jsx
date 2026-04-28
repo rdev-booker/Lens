@@ -40,6 +40,8 @@ export default function CustomerLooksUpload({ frame, onClose }) {
 
       if (error) throw error
 
+      await supabase.rpc('mark_frame_customer_upload', { p_frame_id: frame.id })
+
       setStatus('success')
     } catch (err) {
       setErrorMsg(err.message)

@@ -7,16 +7,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand palette — deep obsidian + warm champagne gold
-        obsidian:  '#0A0A0A',
-        charcoal:  '#1C1C1E',
-        graphite:  '#2C2C2E',
-        smoke:     '#6E6E73',
-        silver:    '#AEAEB2',
-        pearl:     '#F2F2F7',
-        champagne: '#C9A96E',
-        gold:      '#A67C52',
-        ivory:     '#FAF7F2',
+        // CSS-var driven palette — supports light/dark theme switching
+        // RGB triplets defined in index.css :root / [data-theme="light"]
+        obsidian:  'rgb(var(--c-obsidian) / <alpha-value>)',
+        charcoal:  'rgb(var(--c-charcoal) / <alpha-value>)',
+        graphite:  'rgb(var(--c-graphite) / <alpha-value>)',
+        smoke:     'rgb(var(--c-smoke)    / <alpha-value>)',
+        silver:    'rgb(var(--c-silver)   / <alpha-value>)',
+        pearl:     'rgb(var(--c-pearl)    / <alpha-value>)',
+        champagne: 'rgb(var(--c-champagne)/ <alpha-value>)',
+        gold:      'rgb(var(--c-gold)     / <alpha-value>)',
+        ivory:     'rgb(var(--c-ivory)    / <alpha-value>)',
       },
       fontFamily: {
         display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
